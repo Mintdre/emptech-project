@@ -1,0 +1,30 @@
+<%- include('header') %>
+
+<div class="card">
+    <div class="text-center" style="margin-bottom: 2rem;">
+        <h1>How can I assist you?</h1>
+        <p class="text-small">Powered by Gemini AI v1.5 // Secure Connection Established</p>
+    </div>
+
+    <form action="/consult-oracle" method="POST">
+        <div class="form-group">
+            <textarea 
+                name="prompt" 
+                class="modern-input" 
+                placeholder="Describe your technical challenge (e.g., 'How do I migrate from Photoshop to GIMP?')"
+            ><%= typeof prompt != 'undefined' ? prompt : '' %></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Generate Guide</button>
+    </form>
+
+    <% if (typeof response != 'undefined' && response) { %>
+        <div class="response-area markdown-body">
+            <%- response %>
+        </div>
+        <div class="text-center" style="margin-top: 2rem;">
+            <p class="text-small">AI-generated content. Verify important details.</p>
+        </div>
+    <% } %>
+</div>
+
+<%- include('footer') %>

@@ -1,0 +1,30 @@
+<%- include('header') %>
+
+<div style="max-width: 400px; margin: 4rem auto;">
+    <div class="card">
+        <h2 class="text-center">Welcome Back</h2>
+        <p class="text-center text-small" style="margin-bottom: 1.5rem;">Enter your credentials to access the system.</p>
+        
+        <% if (error) { %> 
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 6px; margin-bottom: 1rem; text-align: center;">
+                <span class="text-danger"><%= error %></span>
+            </div>
+        <% } %>
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Username" required class="modern-input">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required class="modern-input">
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+        
+        <p class="text-center text-small" style="margin-top: 1.5rem;">
+            No account? <a href="/register">Create one</a>
+        </p>
+    </div>
+</div>
+
+<%- include('footer') %>
