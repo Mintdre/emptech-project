@@ -7,14 +7,5 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <header>
-        <a href="/" class="brand">✨ Oracle OS</a>
-        <nav>
-            <% if (typeof userId !== 'undefined' && userId) { %>
-                <a href="/logout" class="nav-link">Disconnect</a>
-            <% } else { %>
-                <a href="/login" class="nav-link">Login</a>
-            <% } %>
-        </nav>
-    </header>
-    <div class="container">
+    <!-- Accessibility: Hidden link that becomes visible on Tab focus -->
+    <a href="#main-content" class="skip-link">Skip to Main Content</a>

@@ -1,30 +1,79 @@
 <%- include('header') %>
 
-<div class="card">
-    <div class="text-center" style="margin-bottom: 2rem;">
-        <h1>How can I assist you?</h1>
-        <p class="text-small">Powered by Gemini AI v1.5 // Secure Connection Established</p>
-    </div>
+<div class="app-layout">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <a href="/" class="brand">✨ Oracle OS</a>
+        <a href="/" class="new-chat-btn">+ New Query</a>
 
-    <form action="/consult-oracle" method="POST">
-        <div class="form-group">
-            <textarea 
-                name="prompt" 
-                class="modern-input" 
-                placeholder="Describe your technical challenge (e.g., 'How do I migrate from Photoshop to GIMP?')"
-            ><%= typeof prompt != 'undefined' ? prompt : '' %></textarea>
-        </div>
-        <button type="submit" class="btn-primary">Generate Guide</button>
-    </form>
+        <!-- ACCESSIBILITY TOGGLE BUTTON -->
+        <button onclick="toggleA11y()" style="background:none; border:1px solid var(--border); color:var(--text-muted); width:100%; padding:0.5rem; margin-bottom:1rem; cursor:pointer; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem;">
+            👁️ True Sight Mode
+        </button>
 
-    <% if (typeof response != 'undefined' && response) { %>
-        <div class="response-area markdown-body">
-            <%- response %>
+        <div class="history-list">
+            <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; margin-bottom:0.5rem; font-weight:bold; letter-spacing: 1px;">History</div>
+            
+            <% if (typeof history != 'undefined' && history.length > 0) { %>
+                <% history.forEach(item => { %>
+                    <a href="/post/<%= item.slug %>" 
+                       class="history-item <%= (typeof currentPost != 'undefined' && currentPost && currentPost.slug === item.slug) ? 'active' : '' %>">
+                       <%= item.title.replace(/^#\s*/, '') %>
+                    </a>
+                <% }) %>
+            <% } else { %>
+                <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 1px dashed var(--border); border-radius: 6px;">
+                    No archives found.
+                </div>
+            <% } %>
         </div>
-        <div class="text-center" style="margin-top: 2rem;">
-            <p class="text-small">AI-generated content. Verify important details.</p>
+
+        <div class="user-menu">
+            <span style="color: var(--text-muted);">Logged in</span>
+            <a href="/logout" style="color: var(--error); text-decoration: none;">Disconnect</a>
         </div>
-    <% } %>
+    </aside>
+
+    <!-- MAIN CONTENT AREA (ID used for Skip Link) -->
+    <main class="main-content" id="main-content">
+        <div class="container">
+            
+            <% if (typeof currentPost != 'undefined' && currentPost) { %>
+                <!-- VIEWING A PAST BLOG -->
+                <article class="markdown-body">
+                    <%- currentPost.content %>
+                </article>
+                
+                <div style="margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 2rem; text-align: center;">
+                    <a href="/" class="new-chat-btn" style="display:inline-block; width: auto; padding-left: 2rem; padding-right: 2rem;">
+                        Start New Session
+                    </a>
+                </div>
+
+            <% } else { %>
+                <!-- CREATING A NEW PROMPT -->
+                <div style="text-align: center; margin-top: 10vh; margin-bottom: 3rem;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">The Oracle Awaits</h1>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">
+                        Describe your technical burden, and a guide shall be forged.
+                    </p>
+                </div>
+
+                <form action="/consult-oracle" method="POST" style="max-width: 700px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label for="ai-prompt" class="sr-only">Enter your technical question</label>
+                        <textarea id="ai-prompt" name="prompt" class="modern-input" placeholder="e.g. How do I configure Nginx for a NodeJS app using Podman?"></textarea>
+                    </div>
+                    <div style="text-align: right; margin-top: 1rem;">
+                        <button type="submit" class="btn-primary" style="width: auto; padding-left: 2rem; padding-right: 2rem;">
+                            Generate Guide
+                        </button>
+                    </div>
+                </form>
+            <% } %>
+
+        </div>
+    </main>
 </div>
 
 <%- include('footer') %>

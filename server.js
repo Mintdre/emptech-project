@@ -1,157 +1,182 @@
 require('dotenv').config();
 const express = require('express');
+const { Sequelize, DataTypes } = require('sequelize');
 const session = require('express-session');
+const RedisStore = require('connect-redis').RedisStore;
+const { createClient } = require('redis');
 const bcrypt = require('bcrypt');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const marked = require('marked');
 const createDomPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
+const winston = require('winston');
+const morgan = require('morgan');
+const crypto = require('crypto'); // For generating random IDs
 
-// --- Mock Database (In-Memory) ---
-// This array will hold users while the server is running.
-// It resets if you restart the server.
-const mockUsers = []; 
+// --- 1. LOGGING ---
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.printf(({ timestamp, level, message }) => `[${timestamp}] ${level.toUpperCase()}: ${message}`)
+    ),
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'guild_logs.log' })
+    ]
+});
 
+// --- 2. DATABASE ---
+const sequelize = new Sequelize(process.env.POSTGRES_URI, { logging: false, dialectOptions: { ssl: false } });
+
+// Models
+const User = sequelize.define('User', {
+    username: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false }
+});
+
+const Post = sequelize.define('Post', {
+    slug: { type: DataTypes.STRING, unique: true, allowNull: false }, // The 12-char ID
+    prompt: { type: DataTypes.TEXT, allowNull: false },               // The original question
+    content: { type: DataTypes.TEXT, allowNull: false },              // The generated HTML
+    title: { type: DataTypes.STRING, allowNull: false }               // Short title for sidebar
+});
+
+// Relationships (One User has Many Posts)
+User.hasMany(Post, { foreignKey: 'userId' });
+Post.belongsTo(User, { foreignKey: 'userId' });
+
+sequelize.authenticate()
+    .then(() => {
+        logger.info('🔮 Connected to PostgreSQL');
+        return sequelize.sync(); // Updates tables automatically
+    })
+    .catch(err => logger.error(`❌ DB ERROR: ${err.message}`));
+
+// --- 3. REDIS ---
+const redisClient = createClient({ url: process.env.REDIS_URL });
+redisClient.connect().catch(console.error);
+
+// --- 4. APP SETUP ---
 const window = new JSDOM('').window;
 const DOMPurify = createDomPurify(window);
-
 const app = express();
 const PORT = process.env.PORT || 6769;
 
-// --- Middleware ---
+app.use(morgan('dev', { stream: { write: msg => logger.info(msg.trim()) } }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
-
-// --- In-Memory Session (No Redis needed) ---
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev_secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false } // Set to true if using HTTPS
+    store: new RedisStore({ client: redisClient }),
+    secret: process.env.SESSION_SECRET,
+    resave: false, saveUninitialized: false,
+    cookie: { maxAge: 86400000 } // 1 day
 }));
 
-// --- AI Setup ---
-// Make sure GEMINI_API_KEY is still in your .env file!
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
-// --- Middleware to check login ---
+// --- 5. ROUTES ---
+
 const requireLogin = (req, res, next) => {
-    if (!req.session.userId) {
-        return res.redirect('/login');
+    if (!req.session.userId) return res.redirect('/login');
+    next();
+};
+
+// Middleware to always fetch history for the sidebar
+const fetchHistory = async (req, res, next) => {
+    if (req.session.userId) {
+        // Get most recent posts first
+        res.locals.history = await Post.findAll({ 
+            where: { userId: req.session.userId },
+            order: [['createdAt', 'DESC']],
+            attributes: ['title', 'slug'] 
+        });
+    } else {
+        res.locals.history = [];
     }
     next();
 };
 
-// --- Routes ---
-
-// Auth Routes
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
+// ADD THIS NEW ROUTE HERE:
+app.get('/legal', (req, res) => res.render('legal'));
+
+// Auth
+app.get('/login', (req, res) => res.render('login', { error: null }));
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    
-    // MOCK: Search the array instead of MongoDB
-    const user = mockUsers.find(u => u.username === username);
-    
-    if (user && await bcrypt.compare(password, user.password)) {
+    const user = await User.findOne({ where: { username: req.body.username } });
+    if (user && await bcrypt.compare(req.body.password, user.password)) {
         req.session.userId = user.id;
         return res.redirect('/');
     }
-    res.render('login', { error: 'Invalid credentials, traveler.' });
+    res.render('login', { error: 'Invalid credentials.' });
 });
 
 app.get('/register', (req, res) => res.render('register', { error: null }));
-
 app.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
-        // MOCK: Check array for duplicate
-        if (mockUsers.find(u => u.username === username)) {
-            return res.render('register', { error: 'That name is already taken by another guild member.' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // MOCK: Create user object
-        const newUser = {
-            id: Date.now().toString(), // Simple ID generation
-            username: username,
-            password: hashedPassword
-        };
-        
-        // MOCK: Save to array
-        mockUsers.push(newUser);
-        
-        // Auto-login
-        req.session.userId = newUser.id;
+        const hashed = await bcrypt.hash(req.body.password, 10);
+        const user = await User.create({ username: req.body.username, password: hashed });
+        req.session.userId = user.id;
         res.redirect('/');
-        
-    } catch (e) {
-        console.error(e);
-        res.render('register', { error: 'The archives rejected your signature.' });
-    }
+    } catch (e) { res.render('register', { error: 'Username taken.' }); }
 });
 
-app.get('/logout', (req, res) => {
-    req.session.destroy(() => res.redirect('/login'));
+app.get('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
+
+// Main App (Home - New Chat)
+app.get('/', requireLogin, fetchHistory, (req, res) => {
+    res.render('index', { currentPost: null });
 });
 
-// Main App Route
-app.get('/', requireLogin, (req, res) => {
-    // We verify the user still exists in our mock DB
-    const user = mockUsers.find(u => u.id === req.session.userId);
-    if (!user) {
-        // If server restarted, session might exist but user array is empty
-        return res.redirect('/login');
-    }
-    
-    // Pass prompt/response as undefined initially
-    res.render('index', { response: undefined, prompt: undefined });
+// View Specific Post
+app.get('/post/:slug', requireLogin, fetchHistory, async (req, res) => {
+    const post = await Post.findOne({ where: { slug: req.params.slug, userId: req.session.userId } });
+    if (!post) return res.redirect('/');
+    res.render('index', { currentPost: post });
 });
 
-// The AI Generation Route
+// Generate New Post
 app.post('/consult-oracle', requireLogin, async (req, res) => {
-    const userPrompt = req.body.prompt;
-    
-    // Safety check if prompt is empty
-    if (!userPrompt || userPrompt.trim() === "") {
-        return res.render('index', { response: "<p>You remained silent. The Oracle cannot answer silence.</p>", prompt: "" });
-    }
-
-    const systemInstruction = `
-    You are the "Grand Oracle of the Tech Village". 
-    The user will ask how to do a task (e.g., "How to use GIMP like Photoshop").
-    Create a detailed, helpful BLOG POST/TUTORIAL in Markdown format.
-    
-    Guidelines:
-    1. Tone: Helpful, slightly medieval/fantasy flavor but keep technical terms accurate.
-    2. Structure: Title, Introduction, Step-by-Step Guide, Conclusion.
-    3. Media: Use Markdown image syntax. Use "https://placehold.co/600x400?text=Step+Image" if you can't find a real one, or suggest a YouTube search link.
-    4. Citations: List sources at the bottom.
-    
-    User Query: ${userPrompt}
-    `;
+    const prompt = req.body.prompt;
+    if (!prompt) return res.redirect('/');
 
     try {
-        const result = await model.generateContent(systemInstruction);
+        // 1. Generate Content
+        const result = await model.generateContent(`
+            Act as a technical Oracle. Write a blog post for: "${prompt}".
+            Format: Markdown. 
+            Important: The very first line must be a short Title (max 6 words) starting with #.
+        `);
         const rawMarkdown = result.response.text();
-        const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
         
-        res.render('index', { response: htmlContent, prompt: userPrompt });
-    } catch (error) {
-        console.error("Gemini Error:", error);
-        res.render('index', { 
-            response: "<p>The magical ley lines are disrupted (API Error). Check your console.</p>", 
-            prompt: userPrompt 
+        // 2. Extract Title and Clean Markdown
+        const titleMatch = rawMarkdown.match(/^#\s*(.+)/);
+        const title = titleMatch ? titleMatch[1].trim() : prompt.substring(0, 30) + "...";
+        const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
+
+        // 3. Generate 12-char Slug
+        const slug = crypto.randomBytes(6).toString('hex'); // 6 bytes = 12 hex chars
+
+        // 4. Save to DB
+        await Post.create({
+            userId: req.session.userId,
+            slug: slug,
+            prompt: prompt,
+            title: title,
+            content: htmlContent
         });
+
+        // 5. Redirect to the new page
+        res.redirect(`/post/${slug}`);
+
+    } catch (error) {
+        logger.error(error.message);
+        res.redirect('/'); // Fail silently back to home for now
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🏰 The Oracle's Hearth is open at http://localhost:${PORT}`);
-    console.log(`⚠️  Running in MOCK MODE (Data will vanish on restart)`);
-});
+app.listen(PORT, () => logger.info(`🏰 ORACLE OS: http://localhost:${PORT}`));

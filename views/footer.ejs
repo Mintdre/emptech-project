@@ -1,3 +1,20 @@
-</div>
+<script>
+        // Check if user previously enabled accessibility mode
+        if (localStorage.getItem('a11y-mode') === 'enabled') {
+            document.body.classList.add('a11y-mode');
+        }
+
+        function toggleA11y() {
+            const body = document.body;
+            body.classList.toggle('a11y-mode');
+            
+            // Save preference to browser storage
+            if (body.classList.contains('a11y-mode')) {
+                localStorage.setItem('a11y-mode', 'enabled');
+            } else {
+                localStorage.setItem('a11y-mode', 'disabled');
+            }
+        }
+    </script>
 </body>
 </html>
