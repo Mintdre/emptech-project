@@ -1,12 +1,21 @@
 <%- include('header') %>
 
+<!-- UPGRADE SUCCESS NOTIFICATION -->
+<% if (typeof upgraded != 'undefined' && upgraded) { %>
+    <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999; animation: slideDown 0.5s; font-weight: bold; border: 1px solid #166534;">
+        🎉 Upgrade Successful! You now have <%= user.tier %> access.
+    </div>
+    <style> @keyframes slideDown { from { top: -100px; } to { top: 20px; } } </style>
+    <script>setTimeout(() => { document.querySelector('div[style*="fixed"]').remove(); }, 5000);</script>
+<% } %>
+
 <div class="app-layout">
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
         <a href="/" class="brand">✨ Oracle OS</a>
         <a href="/" class="new-chat-btn">+ New Query</a>
 
-        <!-- ACCESSIBILITY TOGGLE BUTTON -->
+        <!-- ACCESSIBILITY TOGGLE -->
         <button onclick="toggleA11y()" style="background:none; border:1px solid var(--border); color:var(--text-muted); width:100%; padding:0.5rem; margin-bottom:1rem; cursor:pointer; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem;">
             👁️ True Sight Mode
         </button>
@@ -28,13 +37,52 @@
             <% } %>
         </div>
 
-        <div class="user-menu">
-            <span style="color: var(--text-muted);">Logged in</span>
-            <a href="/logout" style="color: var(--error); text-decoration: none;">Disconnect</a>
+        <!-- USER STATS & TIER INFO -->
+        <div class="user-menu" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+            
+            <!-- Name & Badge -->
+            <div style="width: 100%; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; color:var(--text-main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 100px;">
+                    <%= user ? user.username : 'Guest' %>
+                </span>
+                <% if (user) { %>
+                    <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; 
+                        background: <%= user.tier === 'Plus' ? '#facc15' : (user.tier === 'Premium' ? '#8b5cf6' : '#334155') %>; 
+                        color: <%= user.tier === 'Plus' ? 'black' : 'white' %>;">
+                        <%= user.tier %>
+                    </span>
+                <% } %>
+            </div>
+
+            <!-- USAGE METER (Only for Free Tier) -->
+            <% if (user && user.tier === 'Free') { %>
+                <div style="width: 100%;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                        <span>Monthly Usage</span>
+                        <span><%= user.generationCount %> / 10</span>
+                    </div>
+                    <div style="width:100%; height:6px; background:#334155; border-radius:3px; overflow:hidden;">
+                        <!-- Width % calculation ensures it doesn't break CSS if count > 10 -->
+                        <div style="height:100%; background: <%= user.generationCount >= 9 ? '#ef4444' : '#8b5cf6' %>; width: <%= Math.min((user.generationCount / 10) * 100, 100) %>%;"></div>
+                    </div>
+                    <% if (user.generationCount >= 10) { %>
+                        <a href="/pricing" style="font-size:0.75rem; color:#ef4444; text-decoration:underline; display:block; margin-top:4px; font-weight:bold;">Limit Reached - Upgrade</a>
+                    <% } %>
+                </div>
+            <% } %>
+
+            <!-- Separator -->
+            <div style="width: 100%; height: 1px; background: var(--border);"></div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 1rem; font-size: 0.85rem; width: 100%;">
+                <a href="/pricing" style="color: var(--primary);">Upgrade</a>
+                <a href="/logout" style="color: var(--error); margin-left: auto;">Logout</a>
+            </div>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT AREA (ID used for Skip Link) -->
+    <!-- MAIN CONTENT AREA -->
     <main class="main-content" id="main-content">
         <div class="container">
             

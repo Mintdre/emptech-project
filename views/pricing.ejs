@@ -1,0 +1,63 @@
+<%- include('header') %>
+
+<div class="auth-layout" style="justify-content: flex-start; padding-top: 4rem;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <a href="/" class="brand" style="font-size: 2rem;">Oracle OS</a>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Enterprise-grade technical documentation generation.</p>
+        
+        <% if (typeof reason != 'undefined' && reason === 'limit_reached') { %>
+            <div style="margin-top: 1rem; background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.5rem 1rem; border-radius: 6px; display: inline-block;">
+                ⚠️ You have reached your monthly limit of 10 generations. Please upgrade.
+            </div>
+        <% } %>
+    </div>
+
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; max-width: 1200px; width: 100%;">
+        
+        <!-- FREE -->
+        <div class="auth-card" style="width: 300px; border-top: 4px solid var(--text-muted);">
+            <h2>Free</h2>
+            <h1 style="font-size: 2.5rem; margin: 1rem 0;">$0<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">For hobbyists.</p>
+            <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-muted); line-height: 2;">
+                <li>✓ <strong>10 Generations</strong> / month</li>
+                <li>✓ Standard Flash Model</li>
+                <li>✓ Web Access</li>
+                <li>✗ No Priority Support</li>
+            </ul>
+            <button disabled class="btn-primary" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: not-allowed;">Current Plan</button>
+        </div>
+
+        <!-- PREMIUM -->
+        <div class="auth-card" style="width: 300px; border-top: 4px solid var(--primary); transform: scale(1.05);">
+            <div style="text-align: center; background: rgba(139, 92, 246, 0.1); color: var(--primary); padding: 0.25rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 1rem;">RECOMMENDED</div>
+            <h2>Premium</h2>
+            <h1 style="font-size: 2.5rem; margin: 1rem 0;">$10<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">For professionals.</p>
+            <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-main); line-height: 2;">
+                <li>✓ <strong>Unlimited</strong> Generations</li>
+                <li>✓ Standard Flash Model</li>
+                <li>✓ Remove Watermarks</li>
+                <li>✓ Priority Queue</li>
+            </ul>
+            <a href="/checkout/premium" class="btn-primary">Upgrade to Premium</a>
+        </div>
+
+        <!-- PLUS -->
+        <div class="auth-card" style="width: 300px; border-top: 4px solid #facc15;">
+            <h2>Plus</h2>
+            <h1 style="font-size: 2.5rem; margin: 1rem 0;">$20<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">For power users.</p>
+            <ul style="list-style: none; padding: 0; margin-bottom: 2rem; color: var(--text-muted); line-height: 2;">
+                <li>✓ <strong>Unlimited</strong> Generations</li>
+                <li>✓ <strong>Early Access</strong> (Gemini Pro)</li>
+                <li>✓ 24/7 Dedicated Support</li>
+                <li>✓ API Access (Coming Soon)</li>
+            </ul>
+            <a href="/checkout/plus" class="btn-primary" style="background: #facc15; color: black;">Get Plus</a>
+        </div>
+
+    </div>
+</div>
+
+<%- include('footer') %>

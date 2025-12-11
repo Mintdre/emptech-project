@@ -11,9 +11,9 @@ const createDomPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const winston = require('winston');
 const morgan = require('morgan');
-const crypto = require('crypto'); // For generating random IDs
+const crypto = require('crypto');
 
-// --- 1. LOGGING ---
+// --- 1. LOGGING SYSTEM ---
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(
@@ -26,38 +26,45 @@ const logger = winston.createLogger({
     ]
 });
 
-// --- 2. DATABASE ---
-const sequelize = new Sequelize(process.env.POSTGRES_URI, { logging: false, dialectOptions: { ssl: false } });
+// --- 2. DATABASE SETUP (PostgreSQL) ---
+const sequelize = new Sequelize(process.env.POSTGRES_URI, { 
+    logging: false, 
+    dialectOptions: { ssl: false } 
+});
 
-// Models
+// User Model with SaaS Fields
 const User = sequelize.define('User', {
     username: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false }
+    password: { type: DataTypes.STRING, allowNull: false },
+    
+    // SaaS Logic
+    tier: { type: DataTypes.STRING, defaultValue: 'Free' }, // Options: Free, Premium, Plus
+    generationCount: { type: DataTypes.INTEGER, defaultValue: 0 }, // How many blogs generated this month
+    lastResetDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW } // When the month started for this user
 });
 
+// Blog Post Model
 const Post = sequelize.define('Post', {
-    slug: { type: DataTypes.STRING, unique: true, allowNull: false }, // The 12-char ID
-    prompt: { type: DataTypes.TEXT, allowNull: false },               // The original question
-    content: { type: DataTypes.TEXT, allowNull: false },              // The generated HTML
-    title: { type: DataTypes.STRING, allowNull: false }               // Short title for sidebar
+    slug: { type: DataTypes.STRING, unique: true, allowNull: false },
+    prompt: { type: DataTypes.TEXT, allowNull: false },
+    content: { type: DataTypes.TEXT, allowNull: false },
+    title: { type: DataTypes.STRING, allowNull: false }
 });
 
-// Relationships (One User has Many Posts)
+// Relationships
 User.hasMany(Post, { foreignKey: 'userId' });
 Post.belongsTo(User, { foreignKey: 'userId' });
 
-sequelize.authenticate()
-    .then(() => {
-        logger.info('🔮 Connected to PostgreSQL');
-        return sequelize.sync(); // Updates tables automatically
-    })
-    .catch(err => logger.error(`❌ DB ERROR: ${err.message}`));
+// Sync DB
+sequelize.authenticate().then(() => {
+    logger.info('🔮 Database Connected (PostgreSQL)');
+    return sequelize.sync({ alter: true });
+}).catch(err => logger.error(`❌ DB ERROR: ${err.message}`));
 
-// --- 3. REDIS ---
+// --- 3. REDIS & APP CONFIG ---
 const redisClient = createClient({ url: process.env.REDIS_URL });
 redisClient.connect().catch(console.error);
 
-// --- 4. APP SETUP ---
 const window = new JSDOM('').window;
 const DOMPurify = createDomPurify(window);
 const app = express();
@@ -67,116 +74,197 @@ app.use(morgan('dev', { stream: { write: msg => logger.info(msg.trim()) } }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
+
+// Session Config
 app.use(session({
     store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
-    resave: false, saveUninitialized: false,
-    cookie: { maxAge: 86400000 } // 1 day
+    resave: false, 
+    saveUninitialized: false,
+    cookie: { maxAge: 86400000 } // 24 Hours
 }));
 
+// --- 4. AI CONFIGURATION ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+// Standard users get Flash (Fast/Cheap)
+const modelStandard = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+// Plus users get Pro (Higher Quality / "Early Access")
+const modelPro = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
 
-// --- 5. ROUTES ---
+// --- 5. MIDDLEWARE ---
 
+// Block access if not logged in
 const requireLogin = (req, res, next) => {
     if (!req.session.userId) return res.redirect('/login');
     next();
 };
 
-// Middleware to always fetch history for the sidebar
-const fetchHistory = async (req, res, next) => {
+// Fetch User Data, Handle Usage Resets, and Load History
+const fetchUserData = async (req, res, next) => {
     if (req.session.userId) {
-        // Get most recent posts first
-        res.locals.history = await Post.findAll({ 
+        const user = await User.findByPk(req.session.userId);
+        
+        // Handle case where session exists but user was deleted
+        if (!user) {
+            req.session.destroy();
+            return res.redirect('/login');
+        }
+
+        // MONTHLY RESET LOGIC
+        // If the current month is different from the last reset month, clear the counter
+        const now = new Date();
+        const last = new Date(user.lastResetDate);
+        if (now.getMonth() !== last.getMonth() || now.getFullYear() !== last.getFullYear()) {
+            user.generationCount = 0;
+            user.lastResetDate = now;
+            await user.save();
+        }
+
+        // Load History for Sidebar
+        const history = await Post.findAll({ 
             where: { userId: req.session.userId },
             order: [['createdAt', 'DESC']],
             attributes: ['title', 'slug'] 
         });
+        
+        // Pass data to EJS templates
+        res.locals.user = user;
+        res.locals.history = history;
     } else {
+        res.locals.user = null;
         res.locals.history = [];
     }
     next();
 };
 
+// --- 6. ROUTES ---
+
+// --- AUTHENTICATION ---
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
-// ADD THIS NEW ROUTE HERE:
-app.get('/legal', (req, res) => res.render('legal'));
-
-// Auth
-app.get('/login', (req, res) => res.render('login', { error: null }));
 app.post('/login', async (req, res) => {
     const user = await User.findOne({ where: { username: req.body.username } });
     if (user && await bcrypt.compare(req.body.password, user.password)) {
         req.session.userId = user.id;
-        return res.redirect('/');
+        return res.redirect('/'); // Redirect to Dashboard
     }
     res.render('login', { error: 'Invalid credentials.' });
 });
 
 app.get('/register', (req, res) => res.render('register', { error: null }));
+
 app.post('/register', async (req, res) => {
     try {
         const hashed = await bcrypt.hash(req.body.password, 10);
+        // Create user (defaults to Free Tier)
         const user = await User.create({ username: req.body.username, password: hashed });
         req.session.userId = user.id;
-        res.redirect('/');
-    } catch (e) { res.render('register', { error: 'Username taken.' }); }
-});
-
-app.get('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
-
-// Main App (Home - New Chat)
-app.get('/', requireLogin, fetchHistory, (req, res) => {
-    res.render('index', { currentPost: null });
-});
-
-// View Specific Post
-app.get('/post/:slug', requireLogin, fetchHistory, async (req, res) => {
-    const post = await Post.findOne({ where: { slug: req.params.slug, userId: req.session.userId } });
-    if (!post) return res.redirect('/');
-    res.render('index', { currentPost: post });
-});
-
-// Generate New Post
-app.post('/consult-oracle', requireLogin, async (req, res) => {
-    const prompt = req.body.prompt;
-    if (!prompt) return res.redirect('/');
-
-    try {
-        // 1. Generate Content
-        const result = await model.generateContent(`
-            Act as a technical Oracle. Write a blog post for: "${prompt}".
-            Format: Markdown. 
-            Important: The very first line must be a short Title (max 6 words) starting with #.
-        `);
-        const rawMarkdown = result.response.text();
-        
-        // 2. Extract Title and Clean Markdown
-        const titleMatch = rawMarkdown.match(/^#\s*(.+)/);
-        const title = titleMatch ? titleMatch[1].trim() : prompt.substring(0, 30) + "...";
-        const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
-
-        // 3. Generate 12-char Slug
-        const slug = crypto.randomBytes(6).toString('hex'); // 6 bytes = 12 hex chars
-
-        // 4. Save to DB
-        await Post.create({
-            userId: req.session.userId,
-            slug: slug,
-            prompt: prompt,
-            title: title,
-            content: htmlContent
-        });
-
-        // 5. Redirect to the new page
-        res.redirect(`/post/${slug}`);
-
-    } catch (error) {
-        logger.error(error.message);
-        res.redirect('/'); // Fail silently back to home for now
+        res.redirect('/'); // Redirect to Dashboard
+    } catch (e) { 
+        res.render('register', { error: 'Username already taken.' }); 
     }
 });
 
-app.listen(PORT, () => logger.info(`🏰 ORACLE OS: http://localhost:${PORT}`));
+app.get('/logout', (req, res) => req.session.destroy(() => res.redirect('/login')));
+app.get('/legal', (req, res) => res.render('legal'));
+
+// --- MONETIZATION (SaaS) ---
+
+// Pricing Page
+app.get('/pricing', requireLogin, fetchUserData, (req, res) => {
+    res.render('pricing', { reason: req.query.reason });
+});
+
+// Checkout Page (Mock)
+app.get('/checkout/:plan', requireLogin, fetchUserData, (req, res) => {
+    res.render('checkout', { plan: req.params.plan });
+});
+
+// Process Payment (Mock)
+app.post('/process-payment', requireLogin, async (req, res) => {
+    const { plan } = req.body;
+    
+    // Convert 'premium' -> 'Premium'
+    const tierName = plan.charAt(0).toUpperCase() + plan.slice(1); 
+    
+    // Update User: Set new Tier and reset Usage Count
+    await User.update(
+        { tier: tierName, generationCount: 0 }, 
+        { where: { id: req.session.userId } }
+    );
+
+    // Redirect home with a success flag
+    res.redirect('/?upgraded=true');
+});
+
+// --- MAIN APPLICATION ---
+
+// Dashboard (New Chat)
+app.get('/', requireLogin, fetchUserData, (req, res) => {
+    res.render('index', { currentPost: null, upgraded: req.query.upgraded });
+});
+
+// View Specific History Post
+app.get('/post/:slug', requireLogin, fetchUserData, async (req, res) => {
+    const post = await Post.findOne({ where: { slug: req.params.slug, userId: req.session.userId } });
+    if (!post) return res.redirect('/');
+    res.render('index', { currentPost: post, upgraded: null });
+});
+
+// AI GENERATION LOGIC
+app.post('/consult-oracle', requireLogin, fetchUserData, async (req, res) => {
+    const user = res.locals.user;
+    const prompt = req.body.prompt;
+    if (!prompt) return res.redirect('/');
+
+    // 1. CHECK LIMITS (Free Tier = Max 10)
+    if (user.tier === 'Free' && user.generationCount >= 10) {
+        return res.redirect('/pricing?reason=limit_reached');
+    }
+
+    try {
+        // 2. SELECT MODEL
+        // 'Plus' users get the Pro model, everyone else gets Flash
+        const activeModel = (user.tier === 'Plus') ? modelPro : modelStandard;
+        
+        const systemPrompt = `
+            Act as a Senior Technical Writer. Write a structured blog post for: "${prompt}".
+            Format: Markdown. 
+            Tone: Professional, Clear, Concise.
+            Include: Introduction, Prerequisites, Step-by-Step, Conclusion.
+            Start with a # Title (max 6 words).
+        `;
+
+        const result = await activeModel.generateContent(systemPrompt);
+        const rawMarkdown = result.response.text();
+        const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
+        
+        // 3. EXTRACT TITLE
+        const titleMatch = rawMarkdown.match(/^#\s*(.+)/);
+        const title = titleMatch ? titleMatch[1].trim() : "Technical Guide";
+        
+        // 4. GENERATE ID (Slug)
+        const slug = crypto.randomBytes(6).toString('hex');
+
+        // 5. SAVE TO DB
+        await Post.create({ userId: req.session.userId, slug, prompt, title, content: htmlContent });
+        
+        // 6. INCREMENT USAGE COUNT
+        await user.increment('generationCount');
+
+        // 7. SHOW RESULT
+        res.redirect(`/post/${slug}`);
+
+    } catch (error) {
+        logger.error(`GENERATION FAILED: ${error.message}`);
+        res.redirect('/');
+    }
+});
+
+// --- SERVER START ---
+app.listen(PORT, () => {
+    logger.info(`------------------------------------------------`);
+    logger.info(`🏰 ORACLE OS ONLINE: http://localhost:${PORT}`);
+    logger.info(`💾 DATABASE: PostgreSQL + Redis`);
+    logger.info(`------------------------------------------------`);
+});
