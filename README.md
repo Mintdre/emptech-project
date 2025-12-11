@@ -1,77 +1,67 @@
-# Oracle OS (The Oracle's Hearth)
+# Oracle OS (Enterprise Technical Writer)
 
-A dynamic "Help Website" that generates custom, structured blog tutorials on demand using AI. The platform features a unique interface that blends technical utility with a narrative experience, currently styled with a "Modern Arcane" dark-mode aesthetic.
+A sophisticated SaaS platform that uses AI to generate structured, professional technical blog posts and documentation. This project demonstrates a full-stack implementation including authentication, subscription management (SaaS), payment simulation, and accessibility compliance.
+
+> **Repository:** [https://codeberg.org/Mintdre/emptech-project](https://codeberg.org/Mintdre/emptech-project)
 
 ## 🤖 AI & Attribution
 
-*   **Code Development:** This project's source code was developed with the assistance of **Google Gemini**.
-*   **Content Generation:** All tutorials, blog posts, and technical guides within the app are generated in real-time using the **Google Gemini API** (Model: `gemini-flash-latest`).
+*   **Code Assistance:** This project's source code was developed with the assistance of **Google Gemini**.
+*   **Content Engine:** The application leverages the **Google Gemini API** (`gemini-1.5-flash` for Standard users, `gemini-1.5-pro` for Plus users).
 
-## 🚀 Features
+## 🚀 Key Features
 
-*   **AI-Powered Tutorials:** Users input a problem (e.g., "How to move from Photoshop to GIMP"), and the system generates a full Markdown-formatted blog post with steps and citations.
-*   **Contextual Persona:** The AI is prompted to act as a "Grand Oracle," providing helpful, slightly narrative-driven technical advice.
-*   **User System (Mock):** Includes a functional Register/Login system (currently running in "Mock Mode" for easy testing without database setup).
-*   **Professional Logging:** Integrated detailed logging (Winston & Morgan) to track server traffic, errors, and AI generation latency.
-*   **Modern UI:** A responsive, dark-mode interface built with CSS variables and Glassmorphism effects.
+### 1. Core Functionality
+*   **AI Blog Generation:** Converts simple prompts (e.g., "How to use Docker") into full Markdown tutorials with titles and steps.
+*   **History System:** Automatically saves all generated content to a PostgreSQL database. Users can browse past guides via the sidebar.
+
+### 2. Monetization (SaaS Model)
+*   **3-Tier Subscription System:**
+    *   **Free:** Limited to 10 generations per month.
+    *   **Premium:** Unlimited generations + Priority.
+    *   **Plus:** Unlimited + Early Access to "Pro" AI models.
+*   **Mock Payment Gateway:** A simulated checkout experience supporting Credit Card, GCash/Maya, and PayPal. (Accepts any input for testing).
+*   **Usage Tracking:** Visual progress bar for Free tier users tracking their monthly quota.
+
+### 3. Security & Privacy
+*   **Data Protection:** User passwords are hashed using **Bcrypt** (Salt rounds: 10).
+*   **Input Sanitization:** All AI output is scrubbed via **DOMPurify** to prevent XSS attacks.
+*   **Legal Compliance:** Includes a dedicated `/legal` page and mandatory consent checkboxes during registration.
+
+### 4. Accessibility (WCAG)
+*   **"True Sight" Mode:** A high-contrast toggle for visually impaired users.
+*   **Keyboard Navigation:** Includes hidden "Skip to Content" links and visible focus indicators.
+*   **Screen Reader Support:** Full usage of ARIA labels and `.sr-only` classes.
 
 ## 🛠️ Tech Stack
 
 *   **Runtime:** Node.js
 *   **Framework:** Express.js
-*   **AI Engine:** Google Generative AI SDK (`@google/generative-ai`)
-*   **Templating:** EJS (Embedded JavaScript)
-*   **Markdown Parsing:** `marked` + `dompurify` + `jsdom` (for sanitizing HTML)
-*   **Logging:** `winston` (File/Console logs) + `morgan` (HTTP traffic)
-*   **Security:** `bcrypt` (Password hashing)
+*   **Database:** PostgreSQL (User data, History, Subscription state)
+*   **Session Store:** Redis
+*   **AI:** Google Generative AI SDK
+*   **Frontend:** EJS (Templating) + Custom CSS (Glassmorphism/Dark Mode)
+*   **Infrastructure:** Podman / Docker
 
 ## 📦 Installation & Setup
 
-1.  **Prerequisites**
-    *   Node.js (v18 or higher recommended)
-    *   A Google Gemini API Key (Get it from [Google AI Studio](https://aistudio.google.com/))
+### 1. Prerequisites
+*   Node.js (v18+)
+*   Podman or Docker (for Database & Redis)
+*   Google Gemini API Key
 
-2.  **Clone/Download**
-    ```bash
-    git clone https://codeberg.org/Mintdre/emptech-project.git
-    cd emptech-project
-    ```
+### 2. Infrastructure Setup
+Start the required databases using Podman (or Docker):
 
-3.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
+```bash
+# Create data directories
+mkdir -p database/postgres database/redis
 
-4.  **Configuration**
-    Create a `.env` file in the root directory and add the following:
-    ```env
-    PORT=6769
-    SESSION_SECRET=your_random_secret_string_here
-    GEMINI_API_KEY=your_actual_google_api_key_here
-    
-    # Optional (If switching from Mock to Real DB later)
-    # MONGODB_URI=mongodb://127.0.0.1:27017/fantasyhelp
-    # REDIS_URL=redis://127.0.0.1:6379
-    ```
+# Start Redis
+podman run -d --name fantasy-redis -p 6379:6379 -v $(pwd)/database/redis:/data redis:latest
 
-5.  **Run the Server**
-    ```bash
-    node server.js
-    ```
-
-6.  **Access the Application**
-    Open your browser and navigate to: `http://localhost:6769`
-
-## 📝 Usage Guide
-
-1.  **Register:** Create a username and password (stored in memory).
-2.  **Consult:** On the dashboard, type your technical question into the prompt box.
-3.  **Read:** The system will generate a formatted guide.
-4.  **Monitor:** Check `guild_logs.log` in the project folder to see backend activity.
-
-## ⚠️ Note on Data Persistence (this is temporary as I will write a permanent DB in the future.)
-
-Currently, the application is running in **Mock Mode**.
-*   User data is stored in a JavaScript array.
-*   **Restarting the server will wipe all registered users.**
-*   To enable permanent storage, uncomment the MongoDB/Redis sections in `server.js` and ensure those services are running locally.
+# Start PostgreSQL
+podman run -d --name fantasy-postgres -p 5432:5432 \
+  -e POSTGRES_USER=fantasy -e POSTGRES_PASSWORD=password123 -e POSTGRES_DB=fantasyhelp \
+  -v $(pwd)/database/postgres:/var/lib/postgresql/data \
+  postgres:15-alpine
