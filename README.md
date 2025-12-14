@@ -82,3 +82,13 @@ Muse AI uses a **Freemium Subscription** model to generate revenue while maintai
 *   **AI:** Google Gemini API
 *   **Testing:** Jest, Supertest
 *   **Images:** Wikipedia API
+
+---
+
+## 7. License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+## 🤖 Attribution
+
+*   **Code assisted by:** Gemini AI
