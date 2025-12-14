@@ -47,6 +47,8 @@ To democratize storytelling. Muse AI removes the barrier of the "blank page" by 
 **Design Philosophy:** *Ethereal & Immersive.*
 The UI uses a "Dream Mode" aesthetic—dark backgrounds with soft, glowing accents (`glassmorphism`) to reduce eye strain during late-night writing sessions and keep the user focused on the text.
 
+![Muse AI Dashboard](public/images/dashboard.png)
+
 ### Accessibility (WCAG Compliance)
 *   **True Sight Mode:** Instantly switches the UI to a strict High-Contrast (Black/Yellow) theme.
 *   **Screen Reader Ready:** All interactive elements have ARIA labels (e.g., "Generate Story", "Download Draft").
@@ -78,3 +80,4 @@ Muse AI uses a **Freemium** model to balance accessibility with sustainability.
 *   **Database:** PostgreSQL (User Data), Redis (Sessions)
 *   **AI:** Google Gemini API
 *   **Testing:** Jest, Supertest
+*   **Images:** Wikipedia API

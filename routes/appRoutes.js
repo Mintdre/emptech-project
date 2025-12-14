@@ -12,6 +12,7 @@ const requireLogin = require('../middleware/auth');
 const fetchUserData = require('../middleware/userData');
 
 const router = express.Router();
+const { encrypt, decrypt } = require('../utils/encryption');
 
 // Setup DOMPurify
 const window = new JSDOM('').window;
@@ -46,6 +47,8 @@ const modelProOld = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
 
 // Dashboard (New Chat)
 router.get('/', requireLogin, fetchUserData, (req, res) => {
+    // Note: If we display history snippets, we might need to decrypt titles or excerpts here too.
+    // Assuming history-list uses 'title' which is NOT encrypted in DB (based on Post.js model).
     res.render('index', { currentPost: null, upgraded: req.query.upgraded });
 });
 
@@ -53,10 +56,35 @@ router.get('/', requireLogin, fetchUserData, (req, res) => {
 router.get('/post/:slug', requireLogin, fetchUserData, async (req, res) => {
     const post = await Post.findOne({ where: { slug: req.params.slug, userId: req.session.userId } });
     if (!post) return res.redirect('/');
+
+    // Decrypt content for display
+    post.content = decrypt(post.content);
+
     res.render('index', { currentPost: post, upgraded: null });
 });
 
 const { apiLimiter } = require('../middleware/security');
+
+// Helper to fetch valid image from Wikipedia
+async function fetchWikiImage(query) {
+    try {
+        const url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original|thumbnail&titles=${encodeURIComponent(query)}&pithumbsize=600&origin=*`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const pages = data.query?.pages;
+        if (!pages) return null;
+
+        const firstPageId = Object.keys(pages)[0];
+        if (firstPageId === '-1') return null; // Not found
+
+        const page = pages[firstPageId];
+        return page.original?.source || page.thumbnail?.source || null;
+    } catch (e) {
+        logger.error(`Wiki Image Fetch Failed for ${query}: ${e.message}`);
+        return null;
+    }
+}
 
 // AI GENERATION LOGIC
 router.post('/consult-oracle', requireLogin, fetchUserData, apiLimiter, async (req, res) => {
@@ -74,23 +102,45 @@ router.post('/consult-oracle', requireLogin, fetchUserData, apiLimiter, async (r
         const activeModel = (user.tier === 'Plus') ? modelProOld : modelStandardOld;
 
         const systemPrompt = `
-            Act as a Creative Writing Assistant. The user will give you a prompt, idea, or theme: "${prompt}".
-            Your Goal: Create a compelling piece of creative content based on this.
-            Format: Markdown.
-            Tone: Creative, Engaging, Evocative.
+            Act as a Creative Content Generator. The user will give you a prompt, idea, or theme: "${prompt}".
             
-            You can write:
-            - A Short Story
-            - A Poem
-            - A Screenplay Scene
-            - A Blog Post about Creativity
+            Analyze the user's request to determine the best format (e.g., Story, Poem, Screenplay, YouTube Script, Article).
+            If the user asks for a specific format (like "documentary" or "video"), prioritize that structure.
+
+            **IMAGE RULES:**
+            1. For SPECIFIC named entities (famous people, historical figures, specific places like 'Tokai Teio' or 'Kyoto'), use the tag: [[WIKISEARCH: Exact Name]].
+            2. Do NOT use tags for generic scenes, abstract concepts, or characters that are not real/famous entities.
+
+            Your Goal: Create a compelling piece of content based on this.
+            Format: Markdown.
+            Tone: Adaptive to the requested format.
             
             Start with a # Creative Title.
             Then provide the content.
         `;
 
         const result = await activeModel.generateContent(systemPrompt);
-        const rawMarkdown = result.response.text();
+        let rawMarkdown = result.response.text();
+
+        // 3. RESOLVE IMAGE TAGS (Async)
+
+        // A. Resolve WIKISEARCH (Specific)
+        const wikiRegex = /\[\[WIKISEARCH:\s*(.+?)\]\]/g;
+        // Using string replacement loop for safety with async.
+        const wikiMatches = [...rawMarkdown.matchAll(wikiRegex)];
+        for (const match of wikiMatches) {
+            const fullTag = match[0];
+            const query = match[1];
+            let imageUrl = await fetchWikiImage(query);
+
+            if (imageUrl) {
+                rawMarkdown = rawMarkdown.replace(fullTag, `![${query}](${imageUrl})`);
+            } else {
+                // Formatting fallback if no image found: Link to search text or remove
+                rawMarkdown = rawMarkdown.replace(fullTag, `> *[Image of ${query} not found]*`);
+            }
+        }
+
         const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
 
         // 3. EXTRACT TITLE
@@ -100,14 +150,14 @@ router.post('/consult-oracle', requireLogin, fetchUserData, apiLimiter, async (r
         // 4. GENERATE ID (Slug)
         const slug = crypto.randomBytes(6).toString('hex');
 
-        // 5. SAVE TO DB
+        // 5. SAVE TO DB (ENCRYPTED)
         await Post.create({
             userId: req.session.userId,
             slug,
             prompt,
             title,
-            content: htmlContent,
-            rawContent: rawMarkdown
+            content: encrypt(htmlContent),
+            rawContent: encrypt(rawMarkdown)
         });
 
         // 6. INCREMENT USAGE COUNT
@@ -149,7 +199,12 @@ router.get('/post/:slug/download', requireLogin, fetchUserData, async (req, res)
     // 2. Update generation logic to save `rawContent`.
     // 3. For existing posts, `rawContent` will be null, so fallback to `content` (HTML).
 
-    res.send(post.rawContent || post.content);
+    // Reconstruct the markdown file content
+    const decryptedRaw = decrypt(post.rawContent);
+    const decryptedHtml = decrypt(post.content);
+
+    // Prefer raw markdown if available, else HTML
+    res.send(decryptedRaw || decryptedHtml);
 });
 
 // Delete Post
