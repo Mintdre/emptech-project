@@ -1,4 +1,5 @@
 # Muse AI
+<img src="public/images/logo.png" alt="Muse AI Logo" width="150" align="right">
 
 **Category:** Creative Content Outlet  
 **Type:** SaaS Platform (Software as a Service)
@@ -20,8 +21,7 @@ A **Creative Content Outlet** is defined as a platform that allows users to expr
 
 ## 1. Platform Name & Logo
 
-**Name:** Muse AI  
-*(Logo Concept: A glowing, ethereal spark of light emerging from an open book, symbolizing inspiration.)*
+**Name:** Muse AI
 
 ## 2. Purpose & Target Users
 
