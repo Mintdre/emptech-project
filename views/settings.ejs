@@ -1,0 +1,63 @@
+<%- include('header') %>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <a href="/" class="brand">✨ Muse AI</a>
+            <a href="/" class="new-chat-btn">← Back to Dashboard</a>
+        </aside>
+
+        <main class="main-content">
+            <div class="container" style="max-width: 600px; margin-top: 5vh;">
+                <h1>Account Settings</h1>
+
+                <div
+                    style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); margin-top: 2rem;">
+                    <h2 style="margin-bottom: 1.5rem; font-size: 1.2rem;">Change Password</h2>
+
+                    <% if (typeof success !='undefined' && success) { %>
+                        <div
+                            style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #22c55e;">
+                            <%= success %>
+                        </div>
+                        <% } %>
+
+                            <% if (typeof error !='undefined' && error) { %>
+                                <div
+                                    style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border: 1px solid #ef4444;">
+                                    <%= error %>
+                                </div>
+                                <% } %>
+
+                                    <form action="/settings" method="POST">
+                                        <div class="form-group">
+                                            <label for="currentPassword">Current Password</label>
+                                            <input type="password" id="currentPassword" name="currentPassword"
+                                                class="modern-input" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="newPassword">New Password</label>
+                                            <input type="password" id="newPassword" name="newPassword"
+                                                class="modern-input" required minlength="6">
+                                        </div>
+
+                                        <div style="text-align: right; margin-top: 1rem;">
+                                            <button type="submit" class="btn-primary">Update Password</button>
+                                        </div>
+                                    </form>
+                </div>
+
+                <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+                    <p>Username: <strong>
+                            <%= user.username %>
+                        </strong></p>
+                    <p>Tier: <strong>
+                            <%= user.tier %>
+                        </strong></p>
+                    <% if (user.tier==='Free' ) { %>
+                        <p>Usage: <%= user.generationCount %> / 10</p>
+                        <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+    <%- include('footer') %>

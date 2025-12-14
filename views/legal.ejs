@@ -1,42 +1,53 @@
 <%- include('header') %>
 
-<div class="auth-layout">
-    <div class="auth-card" style="max-width: 800px; text-align: left;">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <a href="/" class="brand">✨ Oracle OS</a>
-        </div>
+    <div class="auth-layout">
+        <div class="auth-card" style="max-width: 800px; text-align: left;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <a href="/" class="brand">✨ Muse AI</a>
+            </div>
 
-        <h1 style="border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Legal & Privacy</h1>
+            <h1 style="border-bottom: 1px solid var(--border); padding-bottom: 1rem;">Legal & Privacy</h1>
 
-        <div class="markdown-body" style="background: transparent; border: none; padding: 0;">
-            
-            <h3>1. Data Protection (Security)</h3>
-            <p>We take the security of your account seriously. To protect your privacy:</p>
-            <ul>
-                <li><strong>Passwords:</strong> We never store your actual password. We use <strong>Bcrypt</strong> (a robust hashing algorithm) with a salt factor of 10. Even if our database is stolen, your password remains mathematically locked.</li>
-                <li><strong>Session Security:</strong> We use secure, HTTP-only cookies to prevent script-based attacks (XSS).</li>
-                <li><strong>Sanitization:</strong> All AI-generated content is sanitized using DOMPurify to prevent malicious code injection.</li>
-            </ul>
+            <div class="markdown-body" style="background: transparent; border: none; padding: 0;">
 
-            <h3>2. Privacy Policy</h3>
-            <p><strong>Data We Collect:</strong></p>
-            <ul>
-                <li>Username (for identity).</li>
-                <li>Hashed Password (for authentication).</li>
-                <li>Prompt History (stored to provide the sidebar history feature).</li>
-            </ul>
-            <p><strong>Third-Party Sharing:</strong></p>
-            <p>To generate content, your text prompts are sent to <strong>Google Gemini API</strong>. We do not send your username or password to Google. Please review Google's privacy policy regarding AI interactions.</p>
+                <h3>1. Data Protection (Security)</h3>
+                <p>We take the security of your account seriously. To protect your privacy:</p>
+                <ul>
+                    <li><strong>Passwords:</strong> We never store your actual password. We use <strong>Bcrypt</strong>
+                        (a robust hashing algorithm) with a salt factor of 10. Even if our database is stolen, your
+                        password remains mathematically locked.</li>
+                    <li><strong>Session Security:</strong> We use secure, HTTP-only cookies to prevent script-based
+                        attacks (XSS).</li>
+                    <li><strong>Sanitization:</strong> All AI-generated content is sanitized using DOMPurify to prevent
+                        malicious code injection.</li>
+                </ul>
 
-            <h3>3. Terms of Service (MIT License)</h3>
-            <p>This software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.</p>
+                <h3>2. Privacy Policy</h3>
+                <p><strong>Data We Collect:</strong></p>
+                <ul>
+                    <li>Username (for identity).</li>
+                    <li>Hashed Password (for authentication).</li>
+                    <li>Prompt History (stored to provide the sidebar history feature).</li>
+                </ul>
+                <p><strong>Third-Party Sharing:</strong></p>
+                <p>To generate content, your text prompts are sent to <strong>Google Gemini API</strong>. We do not send
+                    your username or password to Google. Please review Google's privacy policy regarding AI
+                    interactions.</p>
 
-        </div>
-        
-        <div style="text-align: center; margin-top: 2rem;">
-            <a href="/login" class="btn-primary" style="display: inline-block; width: auto; text-decoration: none;">Return to Login</a>
+                <h3>3. Terms of Service (MIT License)</h3>
+                <p>This software is provided "as is", without warranty of any kind, express or implied, including but
+                    not limited to the warranties of merchantability, fitness for a particular purpose and
+                    noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages
+                    or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in
+                    connection with the software or the use or other dealings in the software.</p>
+
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/login" class="btn-primary"
+                    style="display: inline-block; width: auto; text-decoration: none;">Return to Login</a>
+            </div>
         </div>
     </div>
-</div>
 
-<%- include('footer') %>
+    <%- include('footer') %>

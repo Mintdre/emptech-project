@@ -1,48 +1,57 @@
 <%- include('header') %>
 
-<div class="auth-layout">
-    <div class="auth-card">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <a href="/" class="brand">✨ Oracle OS</a>
-        </div>
-
-        <h1>Initialize Account</h1>
-        
-        <% if (error) { %> 
-            <div style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-bottom: 1.5rem; text-align: center; font-size: 0.9rem;">
-                <%= error %>
-            </div>
-        <% } %>
-
-        <form action="/register" method="POST">
-            <div class="form-group">
-                <label for="reg-username" class="sr-only">Choose Username</label>
-                <input type="text" id="reg-username" name="username" placeholder="Choose Username" required class="modern-input">
-            </div>
-            <div class="form-group">
-                <label for="reg-password" class="sr-only">Choose Password</label>
-                <input type="password" id="reg-password" name="password" placeholder="Choose Password" required class="modern-input">
+    <div class="auth-layout">
+        <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <a href="/" class="brand">✨ Muse AI</a>
             </div>
 
-            <!-- PRIVACY CONSENT CHECKBOX -->
-            <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1.5rem;">
-                <input type="checkbox" id="consent" required style="margin-top: 4px; accent-color: var(--primary); cursor: pointer;">
-                <label for="consent" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; cursor: pointer;">
-                    I agree to the <a href="/legal" target="_blank" style="color: var(--primary);">Terms & Privacy Policy</a>. I understand my password will be secured using Bcrypt hashing.
-                </label>
-            </div>
+            <h1>Initialize Account</h1>
 
-            <button type="submit" class="btn-primary">Register</button>
-        </form>
-        
-        <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 1.5rem;">
-            Already have an ID? <a href="/login" style="color: var(--primary);">Login here</a>
-        </p>
+            <% if (error) { %>
+                <div
+                    style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.75rem; border-radius: 6px; margin-bottom: 1.5rem; text-align: center; font-size: 0.9rem;">
+                    <%= error %>
+                </div>
+                <% } %>
 
-        <div style="text-align: center; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-            <a href="/legal" style="font-size: 0.8rem; color: var(--text-muted);">Read Legal Documentation</a>
+                    <form action="/register" method="POST">
+                        <div class="form-group">
+                            <label for="reg-username" class="sr-only">Choose Username</label>
+                            <input type="text" id="reg-username" name="username" placeholder="Choose Username" required
+                                class="modern-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password" class="sr-only">Choose Password</label>
+                            <input type="password" id="reg-password" name="password" placeholder="Choose Password"
+                                required class="modern-input">
+                        </div>
+
+                        <!-- PRIVACY CONSENT CHECKBOX -->
+                        <div class="form-group"
+                            style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1.5rem;">
+                            <input type="checkbox" id="consent" required
+                                style="margin-top: 4px; accent-color: var(--primary); cursor: pointer;">
+                            <label for="consent"
+                                style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; cursor: pointer;">
+                                I agree to the <a href="/legal" target="_blank" style="color: var(--primary);">Terms &
+                                    Privacy Policy</a>. I understand my password will be secured using Bcrypt hashing.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary">Register</button>
+                    </form>
+
+                    <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-top: 1.5rem;">
+                        Already have an ID? <a href="/login" style="color: var(--primary);">Login here</a>
+                    </p>
+
+                    <div
+                        style="text-align: center; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <a href="/legal" style="font-size: 0.8rem; color: var(--text-muted);">Read Legal
+                            Documentation</a>
+                    </div>
         </div>
     </div>
-</div>
 
-<%- include('footer') %>
+    <%- include('footer') %>
