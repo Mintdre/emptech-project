@@ -56,7 +56,7 @@ The UI uses a "Dream Mode" aesthetic—dark backgrounds with soft, glowing accen
 
 ## 5. Monetization Strategy (SaaS)
 
-Muse AI uses a **Freemium** model to balance accessibility with sustainability.
+Muse AI uses a **Freemium Subscription** model to generate revenue while maintaining accessibility.
 
 | Tier | Cost | Features |
 | :--- | :--- | :--- |
@@ -68,6 +68,7 @@ Muse AI uses a **Freemium** model to balance accessibility with sustainability.
 
 ## 6. Security & Privacy
 
+*   **AES-256 Encryption:** All user drafts are encrypted at rest using enterprise-grade encryption keys.
 *   **Bcrypt Hashing:** Passwords are never stored in plain text.
 *   **DOMPurify:** All generated text is sanitized to prevent XSS attacks while preserving formatting.
 *   **Rate Limiting:** Protects the platform from abuse and ensures fair usage for all creators.
