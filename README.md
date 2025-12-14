@@ -1,4 +1,7 @@
 # Muse AI
+> [!NOTE]
+> This is an **EMPTECH (Empowerment Technologies)** academic project.
+
 <img src="public/images/logo.png" alt="Muse AI Logo" width="150" align="right">
 
 **Category:** Creative Content Outlet  
