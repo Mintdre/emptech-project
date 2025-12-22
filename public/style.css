@@ -74,7 +74,10 @@ body {
     transition: 0.2s;
     display: block;
 }
-.new-chat-btn:hover { background-color: var(--primary-hover); }
+
+.new-chat-btn:hover {
+    background-color: var(--primary-hover);
+}
 
 .history-list {
     flex: 1;
@@ -95,8 +98,16 @@ body {
     text-overflow: ellipsis;
     transition: background 0.2s;
 }
-.history-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-.history-item.active { background: rgba(139, 92, 246, 0.2); color: var(--primary); }
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.history-item.active {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--primary);
+}
 
 .user-menu {
     border-top: 1px solid var(--border);
@@ -141,7 +152,9 @@ body {
     color: var(--text-main);
 }
 
-.form-group { margin-bottom: 1.25rem; }
+.form-group {
+    margin-bottom: 1.25rem;
+}
 
 .modern-input {
     width: 100%;
@@ -152,11 +165,19 @@ body {
     border-radius: 6px;
     font-family: inherit;
     font-size: 1rem;
-    box-sizing: border-box; /* Fixes the massive width issue */
+    box-sizing: border-box;
+    /* Fixes the massive width issue */
 }
-.modern-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
 
-textarea.modern-input { min-height: 120px; resize: vertical; }
+.modern-input:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+}
+
+textarea.modern-input {
+    min-height: 120px;
+    resize: vertical;
+}
 
 .btn-primary {
     width: 100%;
@@ -170,22 +191,129 @@ textarea.modern-input { min-height: 120px; resize: vertical; }
     cursor: pointer;
     transition: background 0.2s;
 }
-.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
 
 /* --- MARKDOWN CONTENT --- */
-.markdown-body { line-height: 1.8; color: #cbd5e1; }
-.markdown-body h1, .markdown-body h2 { color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-.markdown-body pre { background: #020617; padding: 1.5rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border); }
-.markdown-body code { font-family: 'Consolas', monospace; color: #a78bfa; }
-.markdown-body img { max-width: 100%; border-radius: 8px; }
+.markdown-body {
+    line-height: 1.8;
+    color: #cbd5e1;
+}
+
+.markdown-body h1,
+.markdown-body h2 {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-body pre {
+    background: #020617;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+}
+
+.markdown-body code {
+    font-family: 'Consolas', monospace;
+    color: #a78bfa;
+}
+
+.markdown-body img {
+    max-width: 100%;
+    border-radius: 8px;
+}
 
 /* Mobile Support */
 @media (max-width: 768px) {
-    .app-layout { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; flex-direction: row; align-items: center; padding: 0.75rem; box-sizing: border-box; }
-    .history-list, .user-menu { display: none; }
-    .brand { margin: 0; margin-right: auto; font-size: 1.2rem; }
-    .new-chat-btn { margin: 0; padding: 0.5rem 1rem; }
+    .app-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: column;
+        /* Changed to column to stack items when open */
+        align-items: flex-start;
+        /* Align start */
+        padding: 0.75rem;
+        box-sizing: border-box;
+        position: relative;
+        /* For absolute positioning of toggle if needed */
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .brand {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: block !important;
+        /* Visible only on mobile */
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .new-chat-btn {
+        margin: 0;
+        margin-top: 1rem;
+        width: 100%;
+        /* Full width button on mobile */
+    }
+
+    /* Hide these by default on mobile */
+    .history-list,
+    .user-menu,
+    .new-chat-btn,
+    .a11y-toggle-btn {
+        display: none;
+    }
+
+    /* Exceptions for Settings Sidebar */
+    .sidebar.settings-sidebar .new-chat-btn {
+        display: block;
+        margin-top: 0;
+    }
+
+    .sidebar.settings-sidebar .brand {
+        margin-bottom: 1rem;
+    }
+
+    /* Show when toggled (Normal Sidebar) */
+    .sidebar.mobile-open .history-list,
+    .sidebar.mobile-open .user-menu,
+    .sidebar.mobile-open .new-chat-btn,
+    .sidebar.mobile-open .a11y-toggle-btn {
+        display: flex;
+        /* or block depending on element */
+    }
+
+    .sidebar.mobile-open .new-chat-btn {
+        display: block;
+    }
+}
+
+/* Ensure toggle is hidden on desktop */
+.mobile-menu-toggle {
+    display: none;
 }
 
 /* --- ACCESSIBILITY FEATURES --- */
@@ -224,11 +352,12 @@ textarea.modern-input { min-height: 120px; resize: vertical; }
 }
 
 /* 3. Strong Focus Indicators (For Keyboard Navigation) */
-button:focus-visible, 
-a:focus-visible, 
-input:focus-visible, 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
 textarea:focus-visible {
-    outline: 3px solid #facc15 !important; /* Bright Yellow */
+    outline: 3px solid #facc15 !important;
+    /* Bright Yellow */
     outline-offset: 2px;
 }
 
@@ -237,10 +366,13 @@ body.a11y-mode {
     --bg-app: #000000;
     --bg-sidebar: #111111;
     --text-main: #ffffff;
-    --text-muted: #e2e8f0; /* Much brighter gray */
-    --primary: #ffff00; /* Yellow for max contrast */
+    --text-muted: #e2e8f0;
+    /* Much brighter gray */
+    --primary: #ffff00;
+    /* Yellow for max contrast */
     --primary-hover: #eab308;
-    font-size: 110%; /* Larger text */
+    font-size: 110%;
+    /* Larger text */
     line-height: 1.8;
 }
 
@@ -252,10 +384,11 @@ body.a11y-mode .brand {
 }
 
 body.a11y-mode .main-content {
-    background: #000000; /* Remove gradient */
+    background: #000000;
+    /* Remove gradient */
 }
 
-body.a11y-mode .btn-primary, 
+body.a11y-mode .btn-primary,
 body.a11y-mode .new-chat-btn {
     background-color: #ffff00;
     color: black;

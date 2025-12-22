@@ -86,7 +86,7 @@ async function fetchWikiImage(query) {
     }
 }
 
-// AI GENERATION LOGIC
+// AI GENERATION LOGIC (LEGACY - FORM SUBMIT)
 router.post('/consult-oracle', requireLogin, fetchUserData, apiLimiter, async (req, res) => {
     const user = res.locals.user;
     const prompt = req.body.prompt;
@@ -169,6 +169,102 @@ router.post('/consult-oracle', requireLogin, fetchUserData, apiLimiter, async (r
     } catch (error) {
         logger.error(`GENERATION FAILED: ${error.message}`);
         res.redirect('/');
+    }
+});
+
+// AI GENERATION LOGIC (STREAMING API)
+router.post('/api/chat/stream', requireLogin, fetchUserData, apiLimiter, async (req, res) => {
+    const user = res.locals.user;
+    const prompt = req.body.prompt;
+    if (!prompt) return res.status(400).json({ error: 'No prompt provided' });
+
+    // 1. CHECK LIMITS
+    if (user.tier === 'Free' && user.generationCount >= 10) {
+        return res.status(403).json({ error: 'Limit reached', redirect: '/pricing?reason=limit_reached' });
+    }
+
+    // Set headers for NDJSON streaming
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    try {
+        const activeModel = (user.tier === 'Plus') ? modelProOld : modelStandardOld;
+        const systemPrompt = `
+            Act as a Creative Content Generator. The user will give you a prompt, idea, or theme: "${prompt}".
+            
+            Analyze the user's request to determine the best format (e.g., Story, Poem, Screenplay, YouTube Script, Article).
+            
+            **IMAGE RULES:**
+            1. For SPECIFIC named entities (famous people, historical figures, specific places), use the tag: [[WIKISEARCH: Exact Name]].
+            2. Do NOT use tags for generic scenes.
+
+            Your Goal: Create a compelling piece of content based on this.
+            Format: Markdown.
+            
+            Start with a # Creative Title.
+            Then provide the content.
+        `;
+
+        const result = await activeModel.generateContentStream(systemPrompt);
+
+        let fullRawMarkdown = '';
+
+        for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            res.write(JSON.stringify({ type: 'chunk', content: chunkText }) + '\n');
+            fullRawMarkdown += chunkText;
+        }
+
+        // Post-processing only happens AFTER stream is complete
+
+        // Resolve Images
+        const wikiRegex = /\[\[WIKISEARCH:\s*(.+?)\]\]/g;
+        const wikiMatches = [...fullRawMarkdown.matchAll(wikiRegex)];
+        for (const match of wikiMatches) {
+            const fullTag = match[0];
+            const query = match[1];
+            let imageUrl = await fetchWikiImage(query);
+
+            if (imageUrl) {
+                fullRawMarkdown = fullRawMarkdown.replace(fullTag, `![${query}](${imageUrl})`);
+            } else {
+                fullRawMarkdown = fullRawMarkdown.replace(fullTag, `> *[Image of ${query} not found]*`);
+            }
+        }
+
+        const htmlContent = DOMPurify.sanitize(marked.parse(fullRawMarkdown));
+
+        // Extract Title
+        const titleMatch = fullRawMarkdown.match(/^#\s*(.+)/);
+        const title = titleMatch ? titleMatch[1].trim() : "Creative Piece";
+
+        // Generate ID
+        const slug = crypto.randomBytes(6).toString('hex');
+
+        // Save
+        await Post.create({
+            userId: req.session.userId,
+            slug,
+            prompt,
+            title,
+            content: encrypt(htmlContent),
+            rawContent: encrypt(fullRawMarkdown)
+        });
+
+        await user.increment('generationCount');
+
+        // Send 'done' event with redirect
+        res.write(JSON.stringify({ type: 'done', slug: slug }) + '\n');
+        res.end();
+
+    } catch (error) {
+        logger.error(`STREAM GENERATION FAILED: ${error.message}`);
+        // If headers not sent (unlikely if loop started), send error. 
+        // If stream started, we might've sent partial data. 
+        // NDJSON clients handle this by checking for 'error' type usually, or just failing.
+        res.write(JSON.stringify({ type: 'error', message: 'Generation failed.' }) + '\n');
+        res.end();
     }
 });
 

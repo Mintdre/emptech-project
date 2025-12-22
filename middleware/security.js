@@ -23,23 +23,24 @@ const helmetConfig = helmet({
 });
 
 // 2. RATE LIMITING
+// 2. RATE LIMITING (RELAXED FOR PRESENTATION)
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    max: 3000, // Increased for Class Presentation (was 100)
+    standardHeaders: true,
+    legacyHeaders: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.'
 });
 
 const authLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 100, // Increased for testing/dev
+    max: 500, // Increased for Class Presentation (was 100)
     message: 'Too many login attempts, please try again later.'
 });
 
 const apiLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 50, // Limit AI generation calls
+    max: 2000, // Increased for Class Presentation (was 50)
     message: 'AI generation limit reached for this IP.'
 });
 

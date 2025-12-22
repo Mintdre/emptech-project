@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
     "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "connect-redis": "^9.0.0",

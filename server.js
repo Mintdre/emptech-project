@@ -33,11 +33,14 @@ const redisClient = createClient({ url: process.env.REDIS_URL });
 redisClient.connect().catch(console.error);
 
 const app = express();
+app.set('trust proxy', 1); // <--- ADD THIS LINE HERE
 const PORT = process.env.PORT || 6769;
+app.use(helmetConfig);
 
 app.use(helmetConfig);
 app.use(globalLimiter);
 app.use(morgan('dev', { stream: { write: msg => logger.info(msg.trim()) } }));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.set('view engine', 'ejs');

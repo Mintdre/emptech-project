@@ -17,144 +17,144 @@
                 }
             }
         </style>
-        <script>setTimeout(() => { document.querySelector('div[style*="fixed"]').remove(); }, 5000);</script>
+        <script>
+            setTimeout(() => {
+                const notification = document.querySelector('div[style*="fixed"]');
+                if (notification) notification.remove();
+            }, 5000);
+        </script>
         <% } %>
+
+            <script>
+                function toggleMobileMenu() {
+                    document.querySelector('.sidebar').classList.toggle('mobile-open');
+                }
+            </script>
 
             <div class="app-layout">
                 <!-- LEFT SIDEBAR -->
                 <aside class="sidebar">
-                    <a href="/" class="brand">
-                        <img src="/images/logo.png" alt="Muse AI"
-                            style="height: 40px; vertical-align: middle; margin-right: 8px;">
-                        Muse AI
-                    </a>
+                    <div class="sidebar-header">
+                        <a href="/" class="brand">
+                            <img src="/images/logo.png" alt="Muse AI"
+                                style="height: 40px; vertical-align: middle; margin-right: 8px;">
+                            Muse AI
+                        </a>
+                        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()"
+                            aria-label="Toggle Menu">☰</button>
+                    </div>
+
                     <a href="/" class="new-chat-btn">+ New Query</a>
 
                     <!-- ACCESSIBILITY TOGGLE -->
-                    <button onclick="toggleA11y()"
-                        style="background:none; border:1px solid var(--border); color:var(--text-muted); width:100%; padding:0.5rem; margin-bottom:1rem; cursor:pointer; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem;">
-                        👁️ True Sight Mode
-                    </button>
-
+                    <button onclick="toggleA11y()" class="a11y-toggle-btn"
+                        style="background:none; border:1px solid var(--border); color:var(--text-muted); width:100%; padding:0.5rem; margin-bottom:1rem; cursor:pointer; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem;">👁️
+                        True Sight Mode </button>
                     <div class="history-list">
                         <div
                             style="font-size:0.75rem; text-transform:uppercase; color:#64748b; margin-bottom:0.5rem; font-weight:bold; letter-spacing: 1px;">
                             History</div>
-
-                        <% if (typeof history !='undefined' && history.length> 0) { %>
-                            <% history.forEach(item=> { %>
-                                <a href="/post/<%= item.slug %>"
+                        <% if (typeof history !='undefined' && history.length> 0) {
+                            %><% history.forEach(item=> {
+                                %> <a href="/post/<%= item.slug %>"
                                     class="history-item <%= (typeof currentPost != 'undefined' && currentPost && currentPost.slug === item.slug) ? 'active' : '' %>">
-                                    <%= item.title.replace(/^#\s*/, '' ) %>
+                                    <%=item.title.replace( /^#\s*/, '' ) %>
                                 </a>
                                 <% }) %>
                                     <% } else { %>
                                         <div
                                             style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 1px dashed var(--border); border-radius: 6px;">
-                                            No archives found.
-                                        </div>
+                                            No archives found. </div>
                                         <% } %>
                     </div>
-
                     <!-- USER STATS & TIER INFO -->
                     <div class="user-menu" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
-
                         <!-- Name & Badge -->
                         <div style="width: 100%; display:flex; justify-content:space-between; align-items:center;">
                             <span
                                 style="font-weight:bold; color:var(--text-main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 100px;">
-                                <%= user ? user.username : 'Guest' %>
+                                <%=user ? user.username : 'Guest' %>
                             </span>
-                            <% if (user) { %>
-                                <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; 
-                        background: <%= user.tier === 'Plus' ? '#facc15' : (user.tier === 'Premium' ? '#8b5cf6' : '#334155') %>; 
-                        color: <%= user.tier === 'Plus' ? 'black' : 'white' %>;">
-                                    <%= user.tier %>
+                            <% if (user) { %><span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; 
+ background: <%=user.tier==='Plus' ? '#facc15': (user.tier==='Premium' ? '#8b5cf6' : '#334155') %>;
+                color: <%=user.tier==='Plus' ? 'black': 'white' %>;
+                ">
+                                    <%=user.tier %>
                                 </span>
                                 <% } %>
                         </div>
-
                         <!-- USAGE METER (Only for Free Tier) -->
                         <% if (user && user.tier==='Free' ) { %>
                             <div style="width: 100%;">
                                 <div
                                     style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
-                                    <span>Monthly Usage</span>
-                                    <span>
-                                        <%= user.generationCount %> / 10
+                                    <span>Monthly Usage</span><span>
+                                        <%=user.generationCount %>/ 10
                                     </span>
                                 </div>
                                 <div
                                     style="width:100%; height:6px; background:#334155; border-radius:3px; overflow:hidden;">
-                                    <!-- Width % calculation ensures it doesn't break CSS if count > 10 -->
+                                    <!-- Width % calculation ensures it doesn't break CSS if count> 10 -->
                                     <div
                                         style="height:100%; background: <%= user.generationCount >= 9 ? '#ef4444' : '#8b5cf6' %>; width: <%= Math.min((user.generationCount / 10) * 100, 100) %>%;">
                                     </div>
                                 </div>
-                                <% if (user.generationCount>= 10) { %>
-                                    <a href="/pricing"
+                                <% if (user.generationCount>=10) {
+                                    %><a href="/pricing"
                                         style="font-size:0.75rem; color:#ef4444; text-decoration:underline; display:block; margin-top:4px; font-weight:bold;">Limit
                                         Reached - Upgrade</a>
                                     <% } %>
                             </div>
                             <% } %>
-
                                 <!-- Separator -->
                                 <div style="width: 100%; height: 1px; background: var(--border);"></div>
-
                                 <!-- Actions -->
                                 <div style="display: flex; gap: 1rem; font-size: 0.85rem; width: 100%;">
-                                    <a href="/pricing" style="color: var(--primary);">Upgrade</a>
-                                    <a href="/settings" style="color: var(--text-muted);">Settings</a>
-                                    <a href="/logout" style="color: var(--error); margin-left: auto;">Logout</a>
+                                    <a href="/pricing" style="color: var(--primary);">Upgrade</a><a href="/settings"
+                                        style="color: var(--text-muted);">Settings</a><a href="/logout"
+                                        style="color: var(--error); margin-left: auto;">Logout</a>
                                 </div>
                     </div>
                 </aside>
-
                 <!-- MAIN CONTENT AREA -->
                 <main class="main-content" id="main-content">
                     <div class="container">
-
                         <% if (typeof currentPost !='undefined' && currentPost) { %>
                             <!-- VIEWING A PAST BLOG -->
-                            <article class="markdown-body">
-                                <%- currentPost.content %>
-                            </article>
-
+                            <article class="markdown-body"><%- currentPost.content %></article>
                             <div
                                 style="margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
                                 <a href="/" class="new-chat-btn"
-                                    style="display:inline-block; width: auto; padding-left: 2rem; padding-right: 2rem;">
-                                    Start New Session
-                                </a>
-
-                                <div style="display: flex; gap: 1rem;">
-                                    <a href="/post/<%= currentPost.slug %>/download" class="btn-secondary"
-                                        style="color: var(--text-main); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px;">
-                                        ⬇️ Download MD
-                                    </a>
+                                    style="display:inline-block; width: auto; padding-left: 2rem; padding-right: 2rem;">Start
+                                    New Session </a>
+                                <div style="display: flex; gap: 1rem;"><a href="/post/<%= currentPost.slug %>/download"
+                                        class="btn-secondary"
+                                        style="color: var(--text-main); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px;">⬇️
+                                        Download MD </a>
                                     <form action="/post/<%= currentPost.slug %>/delete" method="POST"
                                         onsubmit="return confirm('Are you sure? This cannot be undone.');">
                                         <button type="submit"
-                                            style="background: none; border: 1px solid var(--error); color: var(--error); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
-                                            🗑️ Delete
-                                        </button>
+                                            style="background: none; border: 1px solid var(--error); color: var(--error); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">🗑️
+                                            Delete </button>
                                     </form>
                                 </div>
                             </div>
-
                             <% } else { %>
                                 <!-- CREATING A NEW PROMPT -->
                                 <div style="text-align: center; margin-top: 10vh; margin-bottom: 3rem;">
-                                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Unleash Your Imagination</h1>
-                                    <p style="color: var(--text-muted); font-size: 1.1rem;">
-                                        Describe a scene, a character, or a dream, and let the Muse inspire you.
-                                    </p>
+                                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Unleash Your
+                                        Imagination</h1>
+                                    <p style="color: var(--text-muted); font-size: 1.1rem;">Describe a
+                                        scene,
+                                        a character,
+                                        or a dream,
+                                        and let the Muse inspire you. </p>
                                 </div>
-
-                                <form action="/consult-oracle" method="POST" style="max-width: 700px; margin: 0 auto;">
+                                <form id="prompt-form" action="/consult-oracle" method="POST"
+                                    style="max-width: 700px; margin: 0 auto;">
                                     <div class="form-group">
-                                        <label for="ai-prompt" class="sr-only">Enter your creative prompt</label>
+                                        <label for="ai-prompt" class="sr-only">Enter your creative
+                                            prompt</label>
                                         <textarea id="ai-prompt" name="prompt" class="modern-input"
                                             placeholder="e.g. A cyberpunk detective story set in Neo-Manila... or a poem about the smell of rain."></textarea>
                                     </div>
@@ -165,10 +165,87 @@
                                         </button>
                                     </div>
                                 </form>
-                                <% } %>
 
+                                <!-- STREAMING OUTPUT CONTAINER (Hidden by default) -->
+                                <div id="streaming-container" style="display: none; max-width: 800px; margin: 0 auto;">
+                                    <div style="margin-bottom: 2rem; color: var(--text-muted); text-align: center;">
+                                        Generating your story... <span class="loading-dots">...</span>
+                                    </div>
+                                    <div id="streaming-content" class="markdown-body"
+                                        style="min-height: 200px; padding: 2rem; border: 1px dashed var(--primary); border-radius: 8px; background: rgba(15, 23, 42, 0.5);">
+                                    </div>
+                                </div>
+
+                                <script>
+                                    document.getElementById('prompt-form').addEventListener('submit', async function (e) {
+                                        e.preventDefault();
+
+                                        const prompt = document.getElementById('ai-prompt').value;
+                                        if (!prompt) return;
+
+                                        // UI Switch
+                                        this.style.display = 'none';
+                                        const streamContainer = document.getElementById('streaming-container');
+                                        const streamContent = document.getElementById('streaming-content');
+                                        streamContainer.style.display = 'block';
+                                        streamContent.innerText = ''; // Clear previous
+
+                                        try {
+                                            const response = await fetch('/api/chat/stream', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ prompt })
+                                            });
+
+                                            if (!response.ok) {
+                                                const data = await response.json();
+                                                if (data.redirect) {
+                                                    window.location.href = data.redirect;
+                                                    return;
+                                                }
+                                                throw new Error(data.error || 'Generation failed');
+                                            }
+
+                                            const reader = response.body.getReader();
+                                            const decoder = new TextDecoder();
+
+                                            while (true) {
+                                                const { value, done } = await reader.read();
+                                                if (done) break;
+
+                                                const chunk = decoder.decode(value, { stream: true });
+                                                // Handle NDJSON (chunks might be concatenated)
+                                                const lines = chunk.split('\n');
+
+                                                for (const line of lines) {
+                                                    if (!line.trim()) continue;
+                                                    try {
+                                                        const data = JSON.parse(line);
+                                                        if (data.type === 'chunk') {
+                                                            streamContent.innerText += data.content;
+                                                            // Simple auto-scroll
+                                                            window.scrollTo(0, document.body.scrollHeight);
+                                                        } else if (data.type === 'done') {
+                                                            window.location.href = `/post/${data.slug}`;
+                                                        } else if (data.type === 'error') {
+                                                            alert(data.message);
+                                                            window.location.reload();
+                                                        }
+                                                    } catch (e) {
+                                                        // Partial JSON line, ignore or buffer (simplification: ignoring for now as chunks usually align in simple cases, but production might need buffer)
+                                                        console.log('Skipping partial JSON', line);
+                                                    }
+                                                }
+                                            }
+
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert('An error occurred. Please try again.');
+                                            window.location.reload();
+                                        }
+                                    });
+                                </script>
+                                <% } %>
                     </div>
                 </main>
-            </div>
-
-            <%- include('footer') %>
+            </div><%- include('footer') %>
