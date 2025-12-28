@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../../server');
+const { app } = require('../../app');
 const { User, Post, sequelize } = require('../../models');
 const bcrypt = require('bcrypt');
 
@@ -24,9 +24,6 @@ describe('New Features', () => {
         });
     });
 
-    afterAll(async () => {
-        await sequelize.close();
-    });
 
     // Mock Login Cookie
     // Since we use redis-session, mocking is harder without a real redis.

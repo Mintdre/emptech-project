@@ -1,10 +1,10 @@
 const dotenv = require('dotenv');
 dotenv.config();
-const { sequelize } = require('../config/database');
+const { sequelize, connectDB } = require('../config/database');
 
 beforeAll(async () => {
-    // Sync DB before tests (force: true to clear data if needed, but strict layout is better)
-    // For now just ensure connection works or we could mock it entirely in unit tests
+    // Connect to DB before tests
+    await connectDB();
 });
 
 afterAll(async () => {

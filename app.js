@@ -31,7 +31,9 @@ const logger = winston.createLogger({
 });
 
 // --- 2. DATABASE SETUP ---
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+    connectDB();
+}
 
 // --- 3. REDIS & APP CONFIG ---
 let redisClient;
