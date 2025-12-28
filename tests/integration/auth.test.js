@@ -4,7 +4,6 @@ const { User, sequelize } = require('../../models');
 const bcrypt = require('bcrypt');
 
 describe('Auth Endpoints', () => {
-
     beforeAll(async () => {
         await sequelize.sync({ force: true }); // Reset DB for tests
     });

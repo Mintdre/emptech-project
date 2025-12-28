@@ -3,7 +3,6 @@ const app = require('../../server');
 const { sequelize } = require('../../models');
 
 describe('Security Features', () => {
-
     beforeAll(async () => {
         // Just ensure DB is connected, though these tests might not hit DB heavily
         await sequelize.authenticate();

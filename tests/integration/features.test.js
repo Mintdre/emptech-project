@@ -4,7 +4,6 @@ const { User, Post, sequelize } = require('../../models');
 const bcrypt = require('bcrypt');
 
 describe('New Features', () => {
-
     let user;
     let post;
 
@@ -34,15 +33,15 @@ describe('New Features', () => {
     // Since we use redis-session, mocking is harder without a real redis.
     // However, our `requireLogin` middleware checks `req.session.userId`.
     // We can mock the middleware OR just bypass it by setting the session store to MemoryStore for tests (ideal),
-    // OR just use `supertest-session` or similar. 
-    // Given the constraints, I'll mock the middleware in the test using `jest.spyOn`? 
+    // OR just use `supertest-session` or similar.
+    // Given the constraints, I'll mock the middleware in the test using `jest.spyOn`?
     // No, `requireLogin` is a module export.
 
-    // Actually, I can just write a test that hits the endpoints. 
+    // Actually, I can just write a test that hits the endpoints.
     // But authorization prevents it.
     // I will try to use `superagent` agent to persist cookies if I login first.
 
-    let agent = request.agent(app);
+    const agent = request.agent(app);
 
     test('Login first', async () => {
         await agent

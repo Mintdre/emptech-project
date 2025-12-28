@@ -5,11 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon server.js"
+    "test:cov": "jest --coverage",
+    "dev": "nodemon server.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://codeberg.org/Mintdre/emptech-project.git"
+  },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
     "@capacitor/cli": "^8.0.0",
@@ -19,10 +26,12 @@
     "dompurify": "^3.3.1",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
+    "envalid": "^8.1.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
+    "joi": "^18.0.2",
     "jsdom": "^21.1.0",
     "marked": "^17.0.1",
     "morgan": "^1.10.1",
@@ -33,8 +42,17 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-promise": "^6.6.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
+    "prettier": "^3.7.4",
     "supertest": "^7.1.4"
   }
 }

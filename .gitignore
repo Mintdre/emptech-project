@@ -19,6 +19,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 guild_logs.log
+error.log
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -49,3 +50,8 @@ build
 *.swo
 tmp/
 temp/
+android_studio_prompt.md
+capacitor.config.json
+lcb.taild49895.ts.net.crt
+lcb.taild49895.ts.net.key
+database/redis/dump.rdb

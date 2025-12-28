@@ -10,7 +10,7 @@ router.get('/login', (req, res) => res.render('login', { error: null }));
 
 router.post('/login', authLimiter, async (req, res) => {
     const user = await User.findOne({ where: { username: req.body.username } });
-    if (user && await bcrypt.compare(req.body.password, user.password)) {
+    if (user && (await bcrypt.compare(req.body.password, user.password))) {
         req.session.userId = user.id;
         return res.redirect('/'); // Redirect to Dashboard
     }

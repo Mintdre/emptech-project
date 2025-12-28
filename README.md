@@ -4,10 +4,54 @@
 
 <img src="public/images/logo.png" alt="Muse AI Logo" width="150" align="right">
 
+
+![CI](https://github.com/Mintdre/emptech-project/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 **Category:** Creative Content Outlet  
 **Type:** SaaS Platform (Software as a Service)
 
 > **Repository:** [https://codeberg.org/Mintdre/emptech-project](https://codeberg.org/Mintdre/emptech-project)
+
+---
+
+## 🚀 Get Started
+
+### Prerequisites
+*   Node.js 18+
+*   PostgreSQL
+*   Redis
+
+### Installation
+1.  **Clone the repo:**
+    ```bash
+    git clone https://codeberg.org/Mintdre/emptech-project.git
+    cd emptech-project
+    ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Configure environment:**
+    Copy `.env.example` to `.env` and fill in your keys (DB, Redis, Gemini API).
+    ```bash
+    cp .env.example .env
+    ```
+4.  **Run the app:**
+    ```bash
+    npm run dev
+    ```
+5.  **Visit:** `http://localhost:6769`
+
+### Architecture
+```mermaid
+graph TD
+    User[User] -->|HTTP| LB[Express App]
+    LB -->|Session| Redis[(Redis)]
+    LB -->|Data| DB[(PostgreSQL)]
+    LB -->|Gen AI| Gemini[Google Gemini API]
+    LB -->|Images| Wiki[Wikipedia API]
+```
 
 ---
 
