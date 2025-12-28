@@ -45,7 +45,7 @@
 
 ### Architecture
 ```mermaid
-graph TD
+flowchart TD
     User[User] -->|HTTP| LB[Express App]
     LB -->|Session| Redis[(Redis)]
     LB -->|Data| DB[(PostgreSQL)]
