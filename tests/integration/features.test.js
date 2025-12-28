@@ -24,7 +24,6 @@ describe('New Features', () => {
         });
     });
 
-
     // Mock Login Cookie
     // Since we use redis-session, mocking is harder without a real redis.
     // However, our `requireLogin` middleware checks `req.session.userId`.
