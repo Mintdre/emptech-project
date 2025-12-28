@@ -20,6 +20,7 @@ pnpm-debug.log*
 lerna-debug.log*
 guild_logs.log
 error.log
+compose.yaml
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

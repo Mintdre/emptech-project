@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    container_name: emptech-postgres
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-emptech}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Web UI for Database (Adminer)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+  # Redis Session Cache
+  redis:
+    container_name: emptech-redis
+    image: redis:alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
