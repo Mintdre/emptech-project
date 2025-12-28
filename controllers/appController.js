@@ -93,7 +93,7 @@ exports.generateContent = async (req, res) => {
         for (const match of wikiMatches) {
             const fullTag = match[0];
             const query = match[1];
-            let imageUrl = await fetchWikiImage(query);
+            const imageUrl = await fetchWikiImage(query);
             if (imageUrl) {
                 rawMarkdown = rawMarkdown.replace(fullTag, `![${query}](${imageUrl})`);
             } else {
@@ -103,7 +103,7 @@ exports.generateContent = async (req, res) => {
 
         const htmlContent = DOMPurify.sanitize(marked.parse(rawMarkdown));
         const titleMatch = rawMarkdown.match(/^#\s*(.+)/);
-        const title = titleMatch ? titleMatch[1].trim() : "Creative Piece";
+        const title = titleMatch ? titleMatch[1].trim() : 'Creative Piece';
         const slug = crypto.randomBytes(6).toString('hex');
 
         await Post.create({
@@ -117,7 +117,6 @@ exports.generateContent = async (req, res) => {
 
         await user.increment('generationCount');
         res.redirect(`/post/${slug}`);
-
     } catch (error) {
         logger.error(`GENERATION FAILED: ${error.message}`);
         res.redirect('/');

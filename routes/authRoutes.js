@@ -4,8 +4,6 @@ const { User } = require('../models');
 const { authLimiter } = require('../middleware/security');
 const router = express.Router();
 
-app = express();
-
 router.get('/login', (req, res) => res.render('login', { error: null }));
 
 router.post('/login', authLimiter, async (req, res) => {

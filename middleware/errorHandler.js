@@ -3,17 +3,14 @@ const winston = require('winston');
 // Logger specifically for errors (could reuse existing logger)
 const logger = winston.createLogger({
     level: 'error',
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-    ),
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
     transports: [
         new winston.transports.Console(),
         new winston.transports.File({ filename: 'error.log' })
     ]
 });
 
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
     logger.error({
         message: err.message,
         stack: err.stack,
@@ -27,7 +24,10 @@ function errorHandler(err, req, res, next) {
 
     // Return JSON for API requests, HTML for browser
     if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-        return res.status(statusCode).json({ error: message, details: process.env.NODE_ENV === 'development' ? err.message : undefined });
+        return res.status(statusCode).json({
+            error: message,
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -38,7 +38,7 @@ function errorHandler(err, req, res, next) {
     res.status(statusCode).render('index', {
         currentPost: null,
         upgraded: null,
-        error: "Something went wrong. Please try again later."
+        error: 'Something went wrong. Please try again later.'
     });
 }
 

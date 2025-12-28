@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 
 describe('New Features', () => {
     let user;
-    let post;
 
     beforeAll(async () => {
         await sequelize.sync({ force: true });
@@ -15,7 +14,7 @@ describe('New Features', () => {
         user = await User.create({ username: 'feature_user', password: hashed });
 
         // Create Post
-        post = await Post.create({
+        await Post.create({
             userId: user.id,
             slug: 'test-slug',
             title: 'Test Title',

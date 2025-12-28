@@ -1,4 +1,4 @@
-const { User, Post } = require('../../models');
+const { User } = require('../../models');
 
 describe('User Model', () => {
     test('should validate required fields', async () => {

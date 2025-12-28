@@ -5,7 +5,9 @@ const { sequelize } = require('../../models');
 describe('Health Check', () => {
     beforeAll(async () => {
         // Just ensure DB connection or skip if not needed for health
-        try { await sequelize.authenticate(); } catch (e) { }
+        try {
+            await sequelize.authenticate();
+        } catch (e) {}
     });
 
     afterAll(async () => {
