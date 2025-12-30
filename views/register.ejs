@@ -31,6 +31,48 @@
                                 required class="modern-input">
                         </div>
 
+                        <!-- PASSWORD REQUIREMENTS -->
+                        <ul class="password-requirements">
+                            <li id="req-len" class="req-item">At least 8 characters</li>
+                            <li id="req-upper" class="req-item">One uppercase letter</li>
+                            <li id="req-lower" class="req-item">One lowercase letter</li>
+                            <li id="req-num" class="req-item">One number</li>
+                            <li id="req-special" class="req-item">One special character (!@#$%^&*)</li>
+                        </ul>
+
+                        <script>
+                            const passwordInput = document.getElementById('reg-password');
+                            const reqLen = document.getElementById('req-len');
+                            const reqUpper = document.getElementById('req-upper');
+                            const reqLower = document.getElementById('req-lower');
+                            const reqNum = document.getElementById('req-num');
+                            const reqSpecial = document.getElementById('req-special');
+
+                            passwordInput.addEventListener('input', function () {
+                                const val = passwordInput.value;
+
+                                // Length
+                                if (val.length >= 8) reqLen.classList.add('valid');
+                                else reqLen.classList.remove('valid');
+
+                                // Uppercase
+                                if (/[A-Z]/.test(val)) reqUpper.classList.add('valid');
+                                else reqUpper.classList.remove('valid');
+
+                                // Lowercase
+                                if (/[a-z]/.test(val)) reqLower.classList.add('valid');
+                                else reqLower.classList.remove('valid');
+
+                                // Number
+                                if (/[0-9]/.test(val)) reqNum.classList.add('valid');
+                                else reqNum.classList.remove('valid');
+
+                                // Special
+                                if (/[!@#$%^&*]/.test(val)) reqSpecial.classList.add('valid');
+                                else reqSpecial.classList.remove('valid');
+                            });
+                        </script>
+
                         <!-- PRIVACY CONSENT CHECKBOX -->
                         <div class="form-group"
                             style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1.5rem;">

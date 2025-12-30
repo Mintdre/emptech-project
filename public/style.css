@@ -169,6 +169,39 @@ body {
     /* Fixes the massive width issue */
 }
 
+/* Password Requirements Checklist */
+.password-requirements {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 1.5rem 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.req-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+}
+
+.req-item::before {
+    content: '○';
+    /* Empty circle */
+    font-weight: bold;
+}
+
+.req-item.valid {
+    color: #4ade80;
+    /* Green */
+}
+
+.req-item.valid::before {
+    content: '✓';
+    /* Checkmark */
+}
+
 .modern-input:focus {
     outline: 2px solid var(--primary);
     border-color: transparent;
