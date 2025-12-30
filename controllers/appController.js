@@ -20,7 +20,7 @@ const logger = winston.createLogger({
 
 // AI Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const modelStandard = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const modelStandard = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
 // Helper: Wiki Image Fetcher
 async function fetchWikiImage(query) {
