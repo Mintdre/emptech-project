@@ -11,7 +11,7 @@
 **Category:** Creative Content Outlet  
 **Type:** SaaS Platform (Software as a Service)
 
-> **Repository:** [https://codeberg.org/Mintdre/emptech-project](https://codeberg.org/Mintdre/emptech-project)
+> **Repository:** [[https://codeberg.org/Mintdre/emptech-project](https://codeberg.org/Mintdre/emptech-project)](https://github.com/Mintdre/emptech-project)
 
 ---
 
